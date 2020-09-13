@@ -1,6 +1,7 @@
 
 #import "RNSoundRecorder.h"
 #import <AVFoundation/AVFoundation.h>
+#import <AudioToolbox/AudioServices.h>
 
 @implementation RNSoundRecorder {
     AVAudioRecorder* _recorder;
@@ -110,7 +111,11 @@ RCT_EXPORT_METHOD(start:(NSString *)path
     NSError* err = nil;
 
     AVAudioSession* session = [AVAudioSession sharedInstance];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions: (AVAudioSessionCategoryOptionMixWithOthers | AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth) error:&err];
+
+    //Make the default sound route for the session be to use the speaker
+    UInt32 doChangeDefaultRoute = 1;
+    AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof (doChangeDefaultRoute), &doChangeDefaultRoute);
     
     if (err) {
         reject(@"init_session_error", [[err userInfo] description], err);
